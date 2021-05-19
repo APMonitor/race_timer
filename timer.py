@@ -1,14 +1,25 @@
 import os
 import numpy as np
 import cv2
-import pyttsx3
 from datetime import datetime, timedelta
 import time
 from playsound import playsound
 from threading import Thread
 
-# configuration
-race = '100m_Hurdles'
+# folder name
+
+# Rec Meets
+race = '1600m'
+#race = '4x100m'
+#race = '100m'
+#race = '50m'
+#race = '400m'
+#race = '800m'
+#race = '200m'
+#race = '4x400m'
+
+# High school
+#race = '100m_Hurdles'
 #race = '110m_Hurdles'
 #race = '100m'
 #race = '1600m'
@@ -22,16 +33,20 @@ race = '100m_Hurdles'
 
 start_commands=False
 record_video=True
-video_dir = 'C:/Users/johnh/Desktop/videos/'  # './'
+video_dir = './videos/'
+#video_dir = 'C:/Users/johnh/Desktop/videos/'
 video_type = 'mp4' # avi, mp4
-meet='Timpview Meet'
+meet='Provo Track Meet'
 camera1 = 0 # 0=front, 1=rear, 2=external
 camera2 = None
-logo = 'timpview.png'
-# 1920 x 1080
+logo = './images/provo.png'
 # 1280 x 720
 screen_res = 1280, 720
+# 1920 x 1080
 #screen_res = 1920, 1080
+# keystroke listening pause (milli-seconds)
+# smaller values create larger videos / more system resources
+wait = 10
 
 class ThreadedCamera(object):
     def __init__(self, source=0):
@@ -73,14 +88,25 @@ class ThreadedWriter(object):
         self.width = w
         self.height = h
 
-        if vtype=='avi':
-            # Write video.avi
-            self.out = cv2.VideoWriter(video_dir+dname+'.'+video_type, \
-                                       cv2.VideoWriter_fourcc(*'XVID'), \
-                                       30, (w,h))
-        else:
-            # Write video.mp4
-            self.out = cv2.VideoWriter(video_dir+dname+'.'+video_type, \
+        # create video directory if it doesn't exist
+        #if not os.path.isfile(video_dir):
+        #    os.mkdir(video_dir)
+
+        # open video for writing
+        try:
+            if vtype=='avi':
+                # Write video.avi
+                self.out = cv2.VideoWriter(video_dir+dname+'.'+video_type, \
+                                           cv2.VideoWriter_fourcc(*'XVID'), \
+                                           30, (w,h))
+            else:
+                # Write video.mp4
+                self.out = cv2.VideoWriter(video_dir+dname+'.'+video_type, \
+                                           cv2.VideoWriter_fourcc(*'MP4V'), \
+                                           30, (w,h))
+        except:
+            # directory doesn't exist, use current directory instead
+            self.out = cv2.VideoWriter(dname+'.'+video_type, \
                                        cv2.VideoWriter_fourcc(*'MP4V'), \
                                        30, (w,h))
         
@@ -139,6 +165,9 @@ class ThreadedStarter(object):
         self.st = datetime.now() - timedelta(seconds=0.6531)
         return
 
+if start_commands:
+    import pyttsx3
+
 # read logo
 img = cv2.imread(logo,cv2.IMREAD_UNCHANGED)
 # resize logo
@@ -153,7 +182,7 @@ for i in range(3):
     beta.append(img[:,:,i] * (alpha))
 
 # read roadrunner logo
-img = cv2.imread('rr.png',cv2.IMREAD_UNCHANGED)
+img = cv2.imread('./images/rr.png',cv2.IMREAD_UNCHANGED)
 # resize logo
 width=img.shape[1]; height=img.shape[0]
 hrr=50; scale_rr=hrr/height
@@ -166,9 +195,9 @@ for i in range(3):
     brr.append(img[:,:,i] * (arr))
 
 # read award icons, 1st-3rd
-award1 = cv2.imread('Award1.png',cv2.IMREAD_UNCHANGED)
-award2 = cv2.imread('Award2.png',cv2.IMREAD_UNCHANGED)
-award3 = cv2.imread('Award3.png',cv2.IMREAD_UNCHANGED)
+award1 = cv2.imread('./images/Award1.png',cv2.IMREAD_UNCHANGED)
+award2 = cv2.imread('./images/Award2.png',cv2.IMREAD_UNCHANGED)
+award3 = cv2.imread('./images/Award3.png',cv2.IMREAD_UNCHANGED)
 # resize logo
 width=award1.shape[1]; height=award1.shape[0]
 haward=300; scale_award=haward/height
@@ -199,7 +228,8 @@ except:
     print('Directory '+dname+' exists')
 
 # start audio engine
-engine = pyttsx3.init()
+if start_commands:
+    engine = pyttsx3.init()
 
 # place: 1st, 2nd, 3rd...
 ordinal = lambda n: "%d%s" % (n,"tsnrhtdd"[(n//10%10!=1)*(n%10<4)*n%10::4])
@@ -280,9 +310,9 @@ while True:
         img[yloc:yloc+hrr,xloc:xloc+wrr,:] = img1        
         # meet text info
         cv2.putText(img,meet,(370+wlogo,705), \
-                    font, 1.5,(0,0,0),8,cv2.LINE_AA)
+                    font, 1.3,(0,0,0),8,cv2.LINE_AA)
         cv2.putText(img,meet,(370+wlogo,705), \
-                    font, 1.5,(255,255,255),4,cv2.LINE_AA)
+                    font, 1.3,(255,255,255),4,cv2.LINE_AA)
         # Insert recorded times and thumbnails
         scroll = max(0,nf-10)
         if scroll==0:
@@ -326,7 +356,7 @@ while True:
     if record_video:
         out1.add_frame(img)
     # wait for keypress
-    k = cv2.waitKey(10)
+    k = cv2.waitKey(wait)
     if k==32:        
         if not started:
             started = True
@@ -384,7 +414,7 @@ while True:
         started = False
         nf=0; finishers=[]; frames=[]
         out1.release()
-        dname = 'Race_'+datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
+        dname = 'Race_'+datetime.now().strftime("%Y-%m-%d_%H_%M_%S")+'-'+race
         if record_video:
             w,h = c1.size()
             # start video writer
