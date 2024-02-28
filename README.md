@@ -11,4 +11,4 @@ Basic race timer for track running races using OpenCV.
 - Place folder on Dropbox or other file sharing service to make accessible for data entry
 - CSV file is available in each folder with finisher place and time
 
-Google Doc template available for track meet race data entry. See https://roadrunners.club/results
+Google Doc template available for track meet race data entry. See [Roadrunner Results Page](https://www.roadrunners.club/events/results) for examples and templates.
