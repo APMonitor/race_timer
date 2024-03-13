@@ -10,13 +10,15 @@ from threading import Thread
 
 # Rec Meets
 race = '1600m'
-#race = '4x100m'
+#race = '3000m'
 #race = '100m'
 #race = '50m'
 #race = '400m'
 #race = '800m'
 #race = '200m'
+#race = '4x100m'
 #race = '4x400m'
+#race = '3K'
 
 # High school
 #race = '100m_Hurdles'
@@ -32,14 +34,14 @@ race = '1600m'
 #race = '4x400m'
 
 start_commands=False
-record_video=True
-video_dir = './videos/'
-#video_dir = 'C:/Users/johnh/Desktop/videos/'
+record_video=False
+video_dir = './video/'
+#video_dir = 'C:/Users/johnh/Desktop/video/'
 video_type = 'mp4' # avi, mp4
-meet='Provo Track Meet'
-camera1 = 0 # 0=front, 1=rear, 2=external
+meet='BYU Track Meet'
+camera1 = 1 # 0=front, 1=rear, 2=external
 camera2 = None
-logo = './images/provo.png'
+logo = './images/rr.png'
 # 1280 x 720
 screen_res = 1280, 720
 # 1920 x 1080
@@ -221,7 +223,7 @@ date=datetime.now().strftime("%B %d, %Y")
 meet = meet + ' ' + date
 
 # directory for results
-dname = 'Race_'+datetime.now().strftime("%Y-%m-%d_%H_%M_%S")+'-'+race
+dname = 'Race_'+datetime.now().strftime("%H_%M_%S")+'-'+race
 try:
     os.mkdir(dname)
 except:
@@ -279,6 +281,14 @@ nf=0; finishers=[]; frames=[]
 while True:
     img_raw = c1.grab_frame()
     img = img_raw.copy()
+    
+    if nf>=1:
+        # Darken the left part of the image
+        adj_height = min(height,int(5+(height-20) * (nf/10)))
+        overlay_width = int(width * 0.26)  # Adjust the width as needed
+        dark_overlay = np.zeros((adj_height, overlay_width, 3), dtype='uint8')
+        img[:adj_height, :overlay_width] = cv2.addWeighted(img[:adj_height, :overlay_width], 0.3, dark_overlay, 0.7, 0)    
+    
     # Put current DateTime on each frame
     font = cv2.FONT_HERSHEY_SIMPLEX
     font2 = cv2.FONT_HERSHEY_TRIPLEX
