@@ -38,7 +38,7 @@ record_video=False
 video_dir = './video/'
 #video_dir = 'C:/Users/johnh/Desktop/video/'
 video_type = 'mp4' # avi, mp4
-meet='BYU Track Meet'
+meet='RR Time Trial'
 camera1 = 1 # 0=front, 1=rear, 2=external
 camera2 = None
 logo = './images/rr.png'
@@ -284,7 +284,7 @@ while True:
     
     if nf>=1:
         # Darken the left part of the image
-        adj_height = min(height,int(5+(height-20) * (nf/10)))
+        adj_height = min(height,int(8+(height-20) * (nf/10)))
         overlay_width = int(width * 0.26)  # Adjust the width as needed
         dark_overlay = np.zeros((adj_height, overlay_width, 3), dtype='uint8')
         img[:adj_height, :overlay_width] = cv2.addWeighted(img[:adj_height, :overlay_width], 0.3, dark_overlay, 0.7, 0)    
@@ -423,9 +423,20 @@ while True:
         # restart
         started = False
         nf=0; finishers=[]; frames=[]
-        out1.release()
-        dname = 'Race_'+datetime.now().strftime("%Y-%m-%d_%H_%M_%S")+'-'+race
+        dname = 'Race_'+datetime.now().strftime("%H_%M_%S")+'-'+race
+        try:
+            os.mkdir(dname)
+        except:
+            print('Directory '+dname+' exists')
         if record_video:
+            # finish writing frames up to 10 sec afterwards
+            ft = time.time()
+            if out1.n>=1:
+                print('Waiting to write ', str(out1.n), ' frames to video')
+            while out1.n>=1 and (time.time()-ft)<10.0:
+                time.sleep(0.01)
+            out1.release()
+
             w,h = c1.size()
             # start video writer
             out1 = ThreadedWriter(video_type,w,h)
